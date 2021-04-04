@@ -1,0 +1,51 @@
+######
+#Harvest boxplots 
+#
+#Author:Katie O' Dea, katie.odea@ucdconnect.ie
+#
+#Date: 04/04/21
+######
+
+#*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_
+
+#load harvest data
+Harv <- read.csv("Harv.csv")
+
+#load ggplot
+library(ggplot2)
+
+#New variable with treatment and cultivar interaction 
+Harv$newvar2 <- interaction(Harv$Treatment, Harv$Cultivar)
+
+#Subset the data into each protocol
+h1 <- subset(Harv, Protocol == 1)
+h2 <- subset(Harv, Protocol == 2)
+h3 <- subset(Harv, Protocol == 3)
+h4 <- subset(Harv, Protocol == 4)
+h5 <- subset(Harv, Protocol == 5)
+h6 <- subset(Harv, Protocol == 6)
+
+#*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_
+#Boxplots
+
+#Shoot fresh mass 
+ggplot(h2, 
+       aes(x=Cultivar, 
+           y=Shoot_fresh, 
+           fill= newvar2))+
+  geom_boxplot()+
+  labs(y="Fresh mass (g)", x = "Cultivar") +
+  scale_fill_manual(values = c("#990000", "#FF9999", "#003399", "#99CCFF"), name = "Treatment x Cultivar", labels = c("Control Glasnevin no. 5", "Waterlogged Glasnevin no. 5", "Control RGT Planet", "Waterlogged Glasnevin no. 5"))+
+  theme_classic()+
+  theme(plot.title = element_text(face = "bold", size = (20)), 
+        legend.title = element_text(face = "bold.italic"), 
+        legend.text = element_text(face = "italic"), 
+        axis.title = element_text(size = (12)),
+        axis.text.x = element_text(size = (12)),
+        axis.text.y = element_text(size = (12)))+
+  scale_x_discrete(labels=c("Glasnevin" = "Glasnevin no.5", "Planet" = "RGT planet"))+ 
+  ylim(0,22)+ 
+  ggsave("P2_freshmass.png", width=8, height=5,  dpi = 400)
+
+#Repeat this for every protocol
+#Repeat for each harvest parameter incl root fresh, shoot height, shoot dry
