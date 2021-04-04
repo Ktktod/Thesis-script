@@ -1,0 +1,59 @@
+###
+#Bar plots for STI, RGR, RDPB
+#
+#Author: Katie O' Dea, katie.odea@ucdconnect.ie
+#
+#Date: 04/04/21
+#########
+
+#Bar charts for stress tol
+library(ggplot2)
+
+#Read in the data
+databar <- read.csv("TOL.csv")
+summary(databar)
+
+#Shoot fresh
+ggplot(data=databar, aes(x=Protocol, y=Shoot_Fresh, fill=Cultivar)) +
+  geom_bar(stat="identity", position=position_dodge())+
+  theme_minimal()+ 
+  scale_fill_manual(values=c("#990000", "#003399"), labels = c("Glasnevin no. 5", "RGT Planet")) +
+  labs(y= "Stress tolerance index (Shoot fresh mass (g))", x = "Protocol")+ 
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6")) + ylim(-2.1, 3.15) +
+  ggsave("Tol_Sfreshmass.png", width=8, height=5,  dpi = 400)
+
+#Repeat for traits eg Root fresh mass, shoot height, shoot dry
+
+##################
+#Relative growth rate bar plots
+databar <- read.csv("SRGR.csv")
+summary(databar)
+#Subset by cultivar
+databar <- subset(databar, Cultivar == "Planet") #Then repeat for glasnevin
+
+
+#Shoot RGR bar plot
+ggplot(data=databar, aes(x=Protocol, y=RGR, fill=Treatment)) +
+  geom_bar(stat="identity", position=position_dodge())+
+  theme_minimal()+ 
+  scale_fill_manual(values=c( "#003399", "#99CCFF")) +
+  labs(y= "Shoot RGR (g/day)", x = "Protocol", fill = "Treatment")+ 
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6")) + ylim(0,0.2) +
+  ggsave("PlanshootRGR.png", width=8, height=5,  dpi = 400)
+
+#Repeat for other harvest parameters incl biomass, shoot height 
+
+############
+#Relative decrease in plant biomass bar plots
+
+databar <- read.csv("RDPB.csv")
+summary(databar)
+
+#Shoot fresh
+ggplot(data=databar, aes(x=Protocol, y=RDPB, fill=Cultivar)) +
+  geom_bar(stat="identity", position=position_dodge())+
+  theme_minimal()+ 
+  scale_fill_manual(values=c("#990000", "#003399"), labels = c("Glasnevin no. 5", "RGT Planet")) +
+  labs(y= "Relative Decrease in Plant Biomass (Shoot fresh mass (g))", x = "Protocol")+ 
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6")) + 
+  ggsave("Tol_Sfreshmass.png", width=8, height=5,  dpi = 400)
