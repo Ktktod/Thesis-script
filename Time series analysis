@@ -1,0 +1,130 @@
+#########
+#R script for time series analysis of NDVI and SPAD
+#
+#Author: Katie O' Dea, katie.odea@ucdconnect.ie
+#
+#Date: 4/04/21
+##########################
+#########
+#Clear R memory
+getwd()
+setwd()
+
+
+#Load in the data,
+#It's best to use a seapre data file for each protocol
+RGB <- read.csv("Trait2.csv",header=T)
+#Subset the data for each cultivar
+RGB <- subset(RGB, Genotype == "Glasnevin") # Repeat for Planet subset(RGB, Genotype == "Planet")
+head(RGB)
+unique(RGB$Day)
+
+#Load packages
+library("plotrix")
+library("doBy")
+library("ggplot2")
+
+head(RGB)
+RGB <- na.omit(RGB)
+RGBsum <- summaryBy(SPAD + NDVI ~ Day + Treatment, data = RGB, FUN = function(x) {c(m=mean(x), se=std.error(x))})
+head(RGBsum)
+
+
+dim(RGBsum)
+
+
+var = names(RGBsum[3])
+var
+dev.new()
+print(
+  ggplot(RGBsum, aes(x=Day, y=SPAD.m, colour=Treatment, group=Treatment)) + 
+    geom_errorbar(aes(ymin=SPAD.m - SPAD.se, 
+                      ymax=SPAD.m + SPAD.se), 
+                  colour="black", width=.1) +
+    geom_line() +
+    geom_point(size=3, shape=21, fill="white") + # 21 is filled circle
+    xlab("days after treatment") +
+    ylab(var))
+quartz.save(paste("timeseries", var,".pdf"), type="pdf", dpi=100) 
+dev.off()
+
+
+###This code can be looped but since we only have two traits, we just do one at a time
+var = names(RGBsum[5])
+var
+dev.new()
+print(
+  ggplot(RGBsum, aes(x=Day, y=NDVI.m, colour=Treatment, group=Treatment)) + 
+    geom_errorbar(aes(ymin=NDVI.m - NDVI.se, 
+                      ymax=NDVI.m+ NDVI.se), 
+                  colour="black", width=.1) +
+    geom_line() +
+    geom_point(size=3, shape=21, fill="white") + # 21 is filled circle
+    xlab("days after treatment") +
+    ylab(var))
+quartz.save(paste("timeseries", var,".pdf"), type="pdf", dpi=100) 
+dev.off()
+
+#####
+#### timeseries boxplots with ANOVA#####
+mydata <- RGB[,c(2,4:6)] ##### 1
+head(mydata)
+head(RGB)
+
+#### Change the days depending on the protocol###
+str(mydata)
+#mydata$Day <- factor(mydata$Day, 
+#     levels = c(0,  1 , 2 , 3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21),
+#     labels = c("d0",  "d1" , "d2" , "d3",  "d4",  "d5",  "d6",  "d7",  "d8",  "d9", "d10", "d11", "d12", "d13", "d14", "d15", "d16", "d17", "d18", "d19", "d20", "d21"))
+head(mydata)
+
+mydata$Day <- factor(mydata$Day, 
+                     levels = c(0,  1 , 2 , 3,  4,  5,  6,  7,  8,  9, 10, 11, 12),
+                     labels = c("d0",  "d1" , "d2" , "d3",  "d4",  "d5",  "d6",  "d7",  "d8",  "d9", "d10", "d11", "d12"))
+head(mydata)
+
+library("ggpubr")
+
+b<-ggboxplot(mydata, x = "Day", y = "SPAD", color = "Treatment",
+             palette = c("#990000", "#FF9999")) #this colour for RGT planet c("#003399", "#99CCFF")
+
+b
+
+l<-ggline(mydata, x = "Day", y = "SPAD", color = "Treatment",
+          add = c("mean_se", "dotplot"),
+          palette = c("#990000", "#FF9999"))
+l
+
+l2<-ggline(mydata, x = "Day", y = "SPAD", color = "Treatment",
+           add = c("mean_se"),
+           palette = c("#990000", "#FF9999"))
+
+l2
+
+###### running ANOVA###
+res.aov2 <- aov(SPAD ~ Treatment + Day, data = mydata)
+summary(res.aov2)
+
+res.aov3 <- aov(SPAD ~ Treatment + Day + Treatment:Day, data = mydata)
+summary(res.aov3)
+
+model.tables(res.aov3, type="means", se = TRUE)
+
+##### gives you final line graph with Sig.####
+ggline(mydata, x = "Day", y = "SPAD", add = "mean_se",
+       color = "Treatment", c("#990000", "#FF9999"))+
+  stat_compare_means(aes(group = Treatment, method= "anova", label.y = 40), label = "p.signif")
+
+
+## if you want labels closer to the graph 
+ggline(mydata, x = "Day", y = "SPAD", add = "mean_se",
+       color = "Treatment", c("#990000", "#FF9999"))+
+  stat_compare_means(aes(group = Treatment, method= "anova", label.y = 36), label = "p.signif")
+
+ggline(mydata, x = "Day", y = "SPAD", add = "mean_se",
+       color = "Treatment", c("#990000", "#FF9999"))+
+  stat_compare_means(method= "anova") +
+  stat_compare_means(aes(group = Treatment), label = "p.signif", method = "anova",label.y = 36)
+
+
+#### then repeat the same this for NDVI
